@@ -76,8 +76,8 @@ fi
 
 LIST_FILE="${EVALDATA_DIR}/_evaldata_list.txt"
 
-DATABASE_IF_DIR=${ME_DATABASE_IF_DIR}
-DATABASE_IF_SCRIPT="${DATABASE_IF_DIR}/db_insert_evaldata.sh"
+IF_DIR="${ME_DATABASE_DIR}/if"
+IF_SCRIPT="${IF_DIR}/db_insert_evaldata.sh"
 
 if [ "${IS_SAME_GROUP}" = 'yes' ]; then
   OPT_SAME_GROUP='-g'
@@ -106,4 +106,4 @@ printf '%s\n' "${evaldata_list}" | xargs -L 1 realpath >"${LIST_FILE}"
 # insert
 #####################################################################
 
-"${DATABASE_IF_SCRIPT}" ${OPT_SAME_GROUP} -l "${LIST_FILE}"
+"${IF_SCRIPT}" ${OPT_SAME_GROUP} -l "${LIST_FILE}"

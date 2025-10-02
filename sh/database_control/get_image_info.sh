@@ -63,8 +63,8 @@ fi
 # setting
 #####################################################################
 
-IF_DIR=${COMMON_DATABASE_IF_DIR}
-IF_SCRIPT="${IF_DIR}/get_image.sh"
+IF_DIR="${ME_DATABASE_DIR}/if"
+IF_SCRIPT="${IF_DIR}/db_get_image.sh"
 
 #####################################################################
 # call if
