@@ -106,12 +106,12 @@ fi
 
 if [ ! -d "${ABS_LOG_PATH}" ] || [ ! -w "${ABS_LOG_PATH}" ]; then
   echo "ERROR:${0##*/}: invalid path specified <${ABS_LOG_PATH}>" 1>&2
-  exit 1 
+  exit 1
 fi
 
 if [ ! -d "${ABS_IMAGE_PATH}" ] || [ ! -r "${ABS_IMAGE_PATH}" ]; then
   echo "ERROR:${0##*/}: invalid path specified <${ABS_IMAGE_PATH}>" 1>&2
-  exit 1 
+  exit 1
 fi
 
 #####################################################################
@@ -143,7 +143,7 @@ if [ -d "${HARDTOOL_DIR}" ]; then
   rm -rf "${HARDTOOL_DIR}"
 fi
 
-if ! git clone -q "${DATABASE_URL}" "${HARDTOOL_DIR}"; then
+if ! git clone -q "${HARDTOOL_URL}" "${HARDTOOL_DIR}"; then
   echo "ERROR:${0##*/}: git clone failed <${HARDTOOL_URL}>" 1>&2
   exit 1
 fi
@@ -157,12 +157,31 @@ if [ "${exit_code}" -ne 0 ]; then
 fi
 
 #####################################################################
+# output setting file
+#####################################################################
+
+trap '[ -e "${ENABLER_FILE}" ] && rm "${ENABLER_FILE}"' EXIT
+
+: >"${ENABLER_FILE}"
+
+cat <<EOF >>"${ENABLER_FILE}"
+#!/bin/bash
+
+export ME_DATABASE_DIR=${DATABASE_DIR}
+export ME_HARDTOOL_DIR=${HARDTOOL_DIR}
+export ME_PROJECT_NAME=${PROJECT_NAME}
+export ME_PROJECT_VERSION=${PROJECT_VERSION}
+export ME_ABS_LOG_PATH=${ABS_LOG_PATH}
+export ME_ABS_IMAGE_PATH=${ABS_IMAGE_PATH}
+EOF
+
+#####################################################################
 # get environment template
 #####################################################################
 
 env_template_info=$(
   "${DATABASE_CONTROL_DIR}/get_env_template_info.sh" \
-    "${PROJECT_NAME}" "${PROJECT_VERSION}" 
+    "${PROJECT_NAME}" "${PROJECT_VERSION}"
 )
 exit_code=$?
 
@@ -181,19 +200,11 @@ if ! printf '%s\n' "${image_md5sum}" | grep -Eq '^[0-9a-f]{32}$'; then
 fi
 
 #####################################################################
-# output setting file
+# clean
 #####################################################################
 
-: >"${ENABLER_FILE}"
+trap EXIT
 
-cat <<EOF >>"${ENABLER_FILE}" 
-#!/bin/bash
-
-export ME_DATABASE_DIR=${DATABASE_DIR}
-export ME_HARDTOOL_DIR=${HARDTOOL_DIR}
-export ME_PROJECT_NAME=${PROJECT_NAME}
-export ME_PROJECT_VERSION=${PROJECT_VERSION}
-export ME_ABS_LOG_PATH=${ABS_LOG_PATH}
-export ME_ABS_IMAGE_PATH=${ABS_IMAGE_PATH}
+cat <<EOF >>"${ENABLER_FILE}"
 export ME_DEFAULT_IMAGE_MD5SUM=${image_md5sum}
 EOF

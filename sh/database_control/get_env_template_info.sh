@@ -72,14 +72,14 @@ fi
 # setting
 #####################################################################
 
-IF_DIR=${COMMON_DATABASE_IF_DIR}
-IF_SCRIPT="${IF_DIR}/get_env_template.sh"
+IF_DIR="${ME_DATABASE_DIR}/if"
+IF_SCRIPT="${IF_DIR}/db_get_env_template.sh"
 
 #####################################################################
 # call if
 #####################################################################
 
-info=$("${IF_SCRIPT}" "${PROJECT_NAME}" "${PROJECT_VERSION}")
+info=$("${IF_SCRIPT}" -j "${PROJECT_NAME}" "${PROJECT_VERSION}")
 exit_code=$?
 
 if [ "${exit_code}" -ne 0 ]; then
