@@ -62,7 +62,9 @@ me_determine_next_action() {
 me_control_unit_evaluation() {
   local ME_EVAL_LOG_DIR=$1
   local ME_PARAM_FILE=$2
-  local ME_PARAM_NUMBER=$3
+  local ME_PERIPHERAL_FILE=$3
+  local ME_IMAGE_MD5SUM=$4
+  local ME_PARAM_NUMBER=$5
 
   local me_exit_code
   local me_try_count
@@ -88,22 +90,23 @@ me_control_unit_evaluation() {
     me_unit_eval_log_dir_base=$(printf '%02d_%02d\n' "${ME_PARAM_NUMBER}" "${me_try_count}")
     me_unit_eval_log_dir="${ME_EVAL_LOG_DIR}/${me_unit_eval_log_dir_base}"
 
+    mkdir -p "${me_unit_eval_log_dir}"
+
     me_logdata_dir="${me_unit_eval_log_dir}/raw"
     me_evaldata_device_dir="${me_unit_eval_log_dir}/evaldata_device"
     me_evaldata_control_dir="${me_unit_eval_log_dir}/evaldata_control"
-
     me_unit_eval_param_file="${me_unit_eval_log_dir}/param.json"
 
-    cp "${ME_PARAM_FILE}" "${me_unit_eval_param_file}"
     mkdir -p "${me_logdata_dir}"
     mkdir -p "${me_evaldata_device_dir}"
     mkdir -p "${me_evaldata_control_dir}"
+    cp "${ME_PARAM_FILE}" "${me_unit_eval_param_file}"
 
     me_func_name=me_setup_evaluation
     eval "${me_func_name}"
     me_exit_code=$?; if [ "${me_exit_code}" -ne 0 ]; then continue; fi
 
-    me_func_name=me_execute_evaluation
+    me_func_name=me_exec_evaluation
     eval "${me_func_name}" "${ME_PARAM_FILE}" "${me_logdata_dir}"
     me_exit_code=$?; if [ "${me_exit_code}" -ne 0 ]; then continue; fi
 
@@ -120,7 +123,9 @@ me_control_unit_evaluation() {
     me_exit_code=$?; if [ "${me_exit_code}" -ne 0 ]; then continue; fi
 
     me_func_name=me_supplement_evaldata
-    eval "${me_func_name}" "${me_evaldata_device_dir}" "${me_evaldata_control_dir}"
+    eval "${me_func_name}" \
+      -l"${me_logdata_dir}" -p"${ME_PERIPHERAL_FILE}" -m"${IMAGE_MD5SUM}" \
+      "${me_evaldata_device_dir}" "${me_evaldata_control_dir}"
     me_exit_code=$?; if [ "${me_exit_code}" -ne 0 ]; then continue; fi
 
     me_func_name=me_insert_evaldata_to_database

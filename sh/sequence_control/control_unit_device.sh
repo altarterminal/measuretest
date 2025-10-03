@@ -238,7 +238,7 @@ trap '
   [ -e "${ME_PERIPHERAL_FILE}" ] && rm "${ME_PERIPHERAL_FILE}"
 ' EXIT
 
-me_get_peripheral_condition >"${ME_PERIPHERAL_NAME}"
+me_get_peripheral_condition >"${ME_PERIPHERAL_FILE}"
 me_exit_code=$?
 
 if [ "${me_exit_code}" -ne 0 ]; then
@@ -320,7 +320,10 @@ unset me_image_file
 for me_i in $(seq 1 "${me_param_num}"); do
   jq ".[$((me_i - 1))]" "${ME_DEVICE_PARAM_FILE}" >"${ME_TEMP_PARAM_FILE}"
 
-  me_control_unit_evaluation "${ME_EVAL_LOG_DIR}" "${ME_TEMP_PARAM_FILE}" "${me_i}" 
+  me_control_unit_evaluation \
+    "${ME_EVAL_LOG_DIR}" "${ME_TEMP_PARAM_FILE}" \
+    "${ME_PERIPHERAL_FILE}" "${me_final_image_md5sum}" \
+    "${me_i}"
   me_exit_code=$?
 
   case "${me_exit_code}" in
