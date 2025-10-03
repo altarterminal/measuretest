@@ -80,6 +80,7 @@ PROJECT_NAME=$(jq -r '.PROJECT_NAME // empty'  "${PARAM_FILE}")
 PROJECT_VERSION=$(jq -r '.EVALUATION_SOFTWARE_VERSION // empty'  "${PARAM_FILE}")
 ABS_LOG_DIR=$(jq -r '.ABSOLUTE_LOG_PATH // empty'  "${PARAM_FILE}")
 ABS_IMAGE_DIR=$(jq -r '.ABSOLUTE_IMAGE_PATH // empty'  "${PARAM_FILE}")
+MEASURER_MAIL=$(jq -r '.MEASURER_MAIL // empty'  "${PARAM_FILE}")
 
 ABS_LOG_DIR=${ABS_LOG_DIR%/}
 ABS_IMAGE_DIR=${ABS_IMAGE_DIR%/}
@@ -173,6 +174,7 @@ export ME_PROJECT_NAME=${PROJECT_NAME}
 export ME_PROJECT_VERSION=${PROJECT_VERSION}
 export ME_ABS_LOG_DIR=${ABS_LOG_DIR}
 export ME_ABS_IMAGE_DIR=${ABS_IMAGE_DIR}
+export ME_MEASURER_MAIL=${MEASURER_MAIL}
 EOF
 
 #####################################################################
@@ -195,7 +197,16 @@ image_md5sum=$(
 )
 
 if ! printf '%s\n' "${image_md5sum}" | grep -Eq '^[0-9a-f]{32}$'; then
-  echo "ERROR:${0##*/}: invalid image md5sum <${image_md5sum}{>" 1>&2
+  echo "ERROR:${0##*/}: invalid image md5sum <${image_md5sum}>" 1>&2
+  exit 1
+fi
+
+realdevice_serial=$(
+  printf '%s\n' "${env_template_info}" | jq -r '.realdevice_serial // empty'
+)
+
+if ! printf '%s\n' "${realdevice_serial}" | grep -Eq '^[0-9a-f]{8}$'; then
+  echo "ERROR:${0##*/}: invalid realdevice serial <${realdevice_serial}>" 1>&2
   exit 1
 fi
 
@@ -207,4 +218,5 @@ trap EXIT
 
 cat <<EOF >>"${ENABLER_FILE}"
 export ME_DEFAULT_IMAGE_MD5SUM=${image_md5sum}
+export ME_REALDEVICE_SERIAL=${realdevice_serial}
 EOF
