@@ -5,7 +5,7 @@ me_flash_image() {
   local IMAGE_FILE=$1
 
   local THIS_FILE=${BASH_SOURCE[0]} 
-  local FLASH_SCRIPT="${HARDTOOL_DIR}/autoflash.sh"
+  local FLASH_SCRIPT="${ME_HARDTOOL_DIR}/autoflash.sh"
 
   local exit_code
 
