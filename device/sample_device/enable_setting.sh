@@ -32,6 +32,10 @@ me_exec_evaluation() {
   input_3 = "${input_3}"
 __EOF
 
+  var_input_1=${input_1}
+  var_input_2=${input_2}
+  var_input_3=${input_3}
+
   sleep 1
   echo "end:   exec evaluation <${PARAM_FILE},${LOG_DIR}>"
 }
@@ -55,6 +59,26 @@ me_generate_evaluation_result() {
   local EVALDATA_DIR=$2
 
   echo "start: generate evaluation result <${LOG_DIR},${EVALDATA_DIR}>"
+
+  cat <<__EOF | jq . >"${EVALDATA_DIR}/evaldata.json"
+  {
+    "in": {
+      "input_1": ${var_input_1},
+      "input_2": "${var_input_2}",
+      "input_3": "${var_input_3}"
+    },
+
+    "out": {
+      "output_1": 10,
+      "output_2": "This is the value of output 2",
+      "output_3": "This is the value of output 3"
+    },
+
+    "procedure_url": "http://sample.com",
+    "free_description": "This is the free description"
+  }
+__EOF
+
   sleep 1
   echo "end:   generate evaluation result <${LOG_DIR},${EVALDATA_DIR}>"
 }
