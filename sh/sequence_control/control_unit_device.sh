@@ -72,34 +72,35 @@ ME_DEVICE_DIR="${ME_TOP_DIR}/device/${ME_DEVICE_NAME}"
 ME_DEVICE_PARAM_FILE="${ME_DEVICE_DIR}/params.json"
 
 ME_DEVICE_LOG_DIR="${ME_ABS_LOG_DIR}/${ME_DEVICE_NAME}"
-ME_EVAL_LOG_DIR="${ME_DEVICE_LOG_DIR}/${THIS_DATE}"
+ME_EVAL_LOG_DIR="${ME_DEVICE_LOG_DIR}/${ME_THIS_DATE}"
 
 ME_DB_CONTROL_DIR="${ME_SCRIPT_DIR}/database_control"
 ME_GET_IMAGE_INFO_SCRIPT="${ME_DB_CONTROL_DIR}/get_image_info.sh"
 
-ME_TEMP_PARAM_NAME="${TMPDIR:-/tmp}/${0##*/}_${ME_THIS_DATE}_XXXXXX"
+ME_TEMP_PARAM_NAME="${TMPDIR:-/tmp}/${0##*/}_${ME_THIS_DATE}_param_XXXXXX"
+ME_PERIPHERAL_NAME="${TMPDIR:-/tmp}/${0##*/}_${ME_THIS_DATE}_perif_XXXXXX"
 
 #####################################################################
 # check parameter
 #####################################################################
 
-if [ -z "${ME_ABS_LOG_PATH:-}" ]; then
-  echo "ERROR:${0##*/}: variable not set <ME_ABS_LOG_PATH>" 1>&2
+if [ -z "${ME_ABS_LOG_DIR:-}" ]; then
+  echo "ERROR:${0##*/}: variable not set <ME_ABS_LOG_DIR>" 1>&2
   exit 1
 fi
 
-if [ ! -d "${ME_ABS_LOG_PATH}" ] || [ ! -w "${ME_ABS_LOG_PATH}" ]; then
-  echo "ERROR:${0##*/}: invalid path specified <${ME_ABS_LOG_PATH}>" 1>&2
+if [ ! -d "${ME_ABS_LOG_DIR}" ] || [ ! -w "${ME_ABS_LOG_DIR}" ]; then
+  echo "ERROR:${0##*/}: invalid path specified <${ME_ABS_LOG_DIR}>" 1>&2
   exit 1
 fi
 
-if [ -z "${ME_ABS_IMAGE_PATH:-}" ]; then
-  echo "ERROR:${0##*/}: variable not set <ME_ABS_IMAGE_PATH>" 1>&2
+if [ -z "${ME_ABS_IMAGE_DIR:-}" ]; then
+  echo "ERROR:${0##*/}: variable not set <ME_ABS_IMAGE_DIR>" 1>&2
   exit 1
 fi
 
-if [ ! -d "${ME_ABS_IMAGE_PATH}" ] || [ ! -r "${ME_ABS_IMAGE_PATH}" ]; then
-  echo "ERROR:${0##*/}: invalid path specified <${ME_ABS_IMAGE_PATH}>" 1>&2
+if [ ! -d "${ME_ABS_IMAGE_DIR}" ] || [ ! -r "${ME_ABS_IMAGE_DIR}" ]; then
+  echo "ERROR:${0##*/}: invalid path specified <${ME_ABS_IMAGE_DIR}>" 1>&2
   exit 1
 fi
 
@@ -129,6 +130,12 @@ fi
 #####################################################################
 
 . "${ME_THIS_DIR}/import_definition.sh" "${ME_DEVICE_NAME}"
+me_exit_code=$?
+
+if [ "${me_exit_code}" -ne 0 ]; then
+  echo "ERROR:${0##*/}: import definition failed" 1>&2
+  exit "${me_exit_code}"
+fi
 
 #####################################################################
 # check interface implmentation
@@ -137,16 +144,16 @@ fi
 me_check_interface_implement
 me_exit_code=$?
 
-if [ "${exit_code}" -ne 0 ]; then
-  echo "ERROR:${0##*/}: check interface failed <${ME_DEVICE_PARAM_FILE}>" 1>&2
-  exit "${exit_code}"
+if [ "${me_exit_code}" -ne 0 ]; then
+  echo "ERROR:${0##*/}: check interface failed" 1>&2
+  exit "${me_exit_code}"
 fi
 
 #####################################################################
 # check image path
 #####################################################################
 
-if [ -n "${ME_CUSTOM_IMAGE_MD5SUM}" ]; then
+if [ -n "${ME_CUSTOM_IMAGE_MD5SUM:-}" ]; then
   me_final_image_md5sum="${ME_CUSTOM_IMAGE_MD5SUM}"
 else
   me_final_image_md5sum="${ME_DEFAULT_IMAGE_MD5SUM}"
@@ -157,12 +164,12 @@ if ! printf '%s\n' "${me_final_image_md5sum}" | grep -Eq '^[0-9a-f]{32}$'; then
   exit 1
 fi
 
-me_image_info=$("${ME_GET_IMAGE_INFO_SCRIPT}" -j "${me_final_image_md5sum}")
-exit_code=$?
+me_image_info=$("${ME_GET_IMAGE_INFO_SCRIPT}" "${me_final_image_md5sum}")
+me_exit_code=$?
 
-if [ "${exit_code}" -ne 0 ]; then
+if [ "${me_exit_code}" -ne 0 ]; then
   echo "ERROR:${0##*/}: get image info failed <${me_final_image_md5sum}>" 1>&2
-  exit "${exit_code}"
+  exit "${me_exit_code}"
 fi
 
 me_image_relative_path=$(
@@ -181,20 +188,23 @@ fi
 #####################################################################
 
 me_flash_image "${me_image_file}"
-exit_code=$?
+me_exit_code=$?
 
-if [ "${exit_code}" -ne 0 ]; then
+if [ "${me_exit_code}" -ne 0 ]; then
   echo "ERROR:${0##*/}: flash image failed <${me_image_file}>" 1>&2
-  exit "${exit_code}"
+  exit "${me_exit_code}"
 fi
 
 #####################################################################
 # confirm boot
 #####################################################################
 
-if ! me_boot_process; then
+me_boot_process
+me_exit_code=$?
+
+if [ "${me_exit_code}" -ne 0 ]; then
   echo "ERROR:${0##*/}: boot process failed <${me_image_file}>" 1>&2
-  exit "${exit_code}"
+  exit "${me_exit_code}"
 fi
 
 #####################################################################
@@ -218,6 +228,25 @@ if ! cd "${ME_DEVICE_DIR}"; then
 fi
 
 #####################################################################
+# get peripheral condition
+#####################################################################
+
+ME_PERIPHERAL_FILE=$(mktemp "${ME_PERIPHERAL_NAME}")
+
+# This is overridden after this
+trap '
+  [ -e "${ME_PERIPHERAL_FILE}" ] && rm "${ME_PERIPHERAL_FILE}"
+' EXIT
+
+me_get_peripheral_condition >"${ME_PERIPHERAL_NAME}"
+me_exit_code=$?
+
+if [ "${me_exit_code}" -ne 0 ]; then
+  echo "ERROR:${0##*/}: get peripheral condition failed" 1>&2
+  exit "${me_exit_code}"
+fi
+
+#####################################################################
 # setup
 #####################################################################
 
@@ -237,6 +266,7 @@ fi
 ME_TEMP_PARAM_FILE=$(mktemp "${ME_TEMP_PARAM_NAME}")
 
 trap '
+  [ -e "${ME_PERIPHERAL_FILE}" ] && rm "${ME_PERIPHERAL_FILE}"
   [ -e "${ME_TEMP_PARAM_FILE}" ] && rm "${ME_TEMP_PARAM_FILE}"
   me_cleanup_all
 ' EXIT
@@ -264,7 +294,7 @@ unset ME_DEFAULT_IMAGE_MD5SUM
 unset ME_ABS_LOG_DIR
 unset ME_ABS_IMAGE_DIR
 unset ME_THIS_DIR
-unset ME_SETTING_FILE="${ME_THIS_DIR}/../enable_setting.sh"
+unset ME_SETTING_FILE
 
 unset ME_SCRIPT_DIR
 unset ME_TOP_DIR
