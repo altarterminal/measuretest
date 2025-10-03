@@ -17,14 +17,15 @@ ME_TOP_DIR=$(dirname "${ME_SCRIPT_DIR}")
 
 ME_REALDEVICE_CONTROL_DIR=${ME_SCRIPT_DIR}/realdevice_control
 
-ME_DEVICE_DIR="${ME_TOP_DIR}/${ME_DEVICE_NAME}"
+# this is defined in advance
+# ME_DEVICE_DIR="${ME_TOP_DIR}/device/${ME_DEVICE_NAME}"
 ME_DEVICE_SETTING_FILE="${ME_DEVICE_DIR}/enable_setting.sh"
 
 #####################################################################
 # import device script
 #####################################################################
 
-if [ ! -d "${ME_DEVICE_DIR}" ] || [ -x "${ME_DEVICE_DIR}" ]; then
+if [ ! -d "${ME_DEVICE_DIR}" ] || [ ! -x "${ME_DEVICE_DIR}" ]; then
   echo "ERROR:${ME_THIS_FILE##*/}: invalid device dir <${ME_DEVICE_DIR}>" 1>&2
   return 1
 fi
@@ -48,6 +49,7 @@ fi
 
 . "${ME_THIS_DIR}/control_unit_evaluation.sh"
 . "${ME_THIS_DIR}/check_interface_implement.sh"
+. "${ME_THIS_DIR}/get_peripheral_condition.sh"
 . "${ME_THIS_DIR}/sequence_control_wrapper.sh"
 
 #####################################################################
@@ -79,5 +81,6 @@ unset ME_THIS_DIR
 unset ME_SCRIPT_DIR
 unset ME_TOP_DIR
 unset ME_REALDEVICE_CONTROL_DIR
-unset ME_DEVICE_DIR
+# this is defined in advance
+# unset ME_DEVICE_DIR
 unset ME_DEVICE_SETTING_FILE

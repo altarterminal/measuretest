@@ -1,8 +1,5 @@
 #!/bin/bash
-
-#####################################################################
-# check
-#####################################################################
+set -u
 
 me_check_interface_implement() {
   local this_file
@@ -14,8 +11,8 @@ me_check_interface_implement() {
     me_setup_evaluation
     me_exec_evaluation
     me_cleanup_evaluation
-    me_judge_evaluation
-    me_generate_evaldata
+    me_judge_evaluation_execution
+    me_generate_evaluation_result
     me_cleanup_all
 __EOF
     while read -r func_name; do
