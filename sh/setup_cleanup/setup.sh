@@ -78,11 +78,11 @@ fi
 
 PROJECT_NAME=$(jq -r '.PROJECT_NAME // empty'  "${PARAM_FILE}")
 PROJECT_VERSION=$(jq -r '.EVALUATION_SOFTWARE_VERSION // empty'  "${PARAM_FILE}")
-ABS_LOG_PATH=$(jq -r '.ABSOLUTE_LOG_PATH // empty'  "${PARAM_FILE}")
-ABS_IMAGE_PATH=$(jq -r '.ABSOLUTE_IMAGE_PATH // empty'  "${PARAM_FILE}")
+ABS_LOG_DIR=$(jq -r '.ABSOLUTE_LOG_PATH // empty'  "${PARAM_FILE}")
+ABS_IMAGE_DIR=$(jq -r '.ABSOLUTE_IMAGE_PATH // empty'  "${PARAM_FILE}")
 
-ABS_LOG_PATH=${ABS_LOG_PATH%/}
-ABS_IMAGE_PATH=${ABS_IMAGE_PATH%/}
+ABS_LOG_DIR=${ABS_LOG_DIR%/}
+ABS_IMAGE_DIR=${ABS_IMAGE_DIR%/}
 
 if [ -z "${PROJECT_NAME}" ]; then
   echo "ERROR:${0##*/}: PROJECT_NAME not found <${PARAM_FILE}>" 1>&2
@@ -94,23 +94,23 @@ if [ -z "${PROJECT_VERSION}" ]; then
   exit 1
 fi
 
-if [ -z "${ABS_LOG_PATH}" ]; then
+if [ -z "${ABS_LOG_DIR}" ]; then
   echo "ERROR:${0##*/}: ABSOLUTE_LOG_PATH not found <${PARAM_FILE}>" 1>&2
   exit 1
 fi
 
-if [ -z "${ABS_IMAGE_PATH}" ]; then
+if [ -z "${ABS_IMAGE_DIR}" ]; then
   echo "ERROR:${0##*/}: ABSOLUTE_IMAGE_PATH not found <${PARAM_FILE}>" 1>&2
   exit 1
 fi
 
-if [ ! -d "${ABS_LOG_PATH}" ] || [ ! -w "${ABS_LOG_PATH}" ]; then
-  echo "ERROR:${0##*/}: invalid path specified <${ABS_LOG_PATH}>" 1>&2
+if [ ! -d "${ABS_LOG_DIR}" ] || [ ! -w "${ABS_LOG_DIR}" ]; then
+  echo "ERROR:${0##*/}: invalid path specified <${ABS_LOG_DIR}>" 1>&2
   exit 1
 fi
 
-if [ ! -d "${ABS_IMAGE_PATH}" ] || [ ! -r "${ABS_IMAGE_PATH}" ]; then
-  echo "ERROR:${0##*/}: invalid path specified <${ABS_IMAGE_PATH}>" 1>&2
+if [ ! -d "${ABS_IMAGE_DIR}" ] || [ ! -r "${ABS_IMAGE_DIR}" ]; then
+  echo "ERROR:${0##*/}: invalid path specified <${ABS_IMAGE_DIR}>" 1>&2
   exit 1
 fi
 
@@ -171,8 +171,8 @@ export ME_DATABASE_DIR=${DATABASE_DIR}
 export ME_HARDTOOL_DIR=${HARDTOOL_DIR}
 export ME_PROJECT_NAME=${PROJECT_NAME}
 export ME_PROJECT_VERSION=${PROJECT_VERSION}
-export ME_ABS_LOG_PATH=${ABS_LOG_PATH}
-export ME_ABS_IMAGE_PATH=${ABS_IMAGE_PATH}
+export ME_ABS_LOG_DIR=${ABS_LOG_DIR}
+export ME_ABS_IMAGE_DIR=${ABS_IMAGE_DIR}
 EOF
 
 #####################################################################
