@@ -124,7 +124,7 @@ me_control_unit_evaluation() {
 
     me_func_name=me_supplement_evaldata
     eval "${me_func_name}" \
-      -l"${me_logdata_dir}" -p"${ME_PERIPHERAL_FILE}" -m"${IMAGE_MD5SUM}" \
+      -l"${me_logdata_dir}" -p"${ME_PERIPHERAL_FILE}" -m"${ME_IMAGE_MD5SUM}" \
       "${me_evaldata_device_dir}" "${me_evaldata_control_dir}"
     me_exit_code=$?; if [ "${me_exit_code}" -ne 0 ]; then continue; fi
 

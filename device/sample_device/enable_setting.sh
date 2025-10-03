@@ -1,4 +1,5 @@
 #!/bin/bash
+set -u
 
 me_setup_all() {
   echo 'start: setup all'
