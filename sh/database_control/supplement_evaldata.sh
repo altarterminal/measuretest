@@ -7,13 +7,14 @@ set -u
 
 print_usage_and_exit() {
   cat <<USAGE 1>&2
-Usage   : ${0##*/} -l<log path> -p<peripheral file> <src dir> <dst dir>
+Usage   : ${0##*/} -l<log path> -p<peripheral file> -m<image md5sum> <src dir> <dst dir>
 Options : 
 
 Supplement the raw evaldata in <src dir> and store in <dst dir>.
 
--l: Specify the directory path of the directory to put evaluation log in.
+-l: Specify the dir to put evaluation log in.
 -p: Specify the file path in which the peripheral conditions are.
+-m: Specify the image md5sum.
 USAGE
   exit 1
 }
@@ -27,6 +28,7 @@ opr_d=''
 
 opt_l=''
 opt_p=''
+opt_m=''
 
 i=1
 for arg in ${1+"$@"}; do
@@ -34,6 +36,7 @@ for arg in ${1+"$@"}; do
     -h|--help|--version) print_usage_and_exit ;;
     -l*)                 opt_l="${arg#-l}"    ;;
     -p*)                 opt_p="${arg#-p}"    ;;
+    -m*)                 opt_m="${arg#-m}"    ;;
     *)
       if   [ $((i+1)) -eq $# ] && [ -z "${opr_s}" ]; then
         opr_s="${arg}"
@@ -69,8 +72,8 @@ if [ -z "${opt_p}" ]; then
   exit 1
 fi
 
-if [ ! -d "${opr_s}" ]; then
-  echo "ERROR:${0##*/}: invalid directory specified <${opr_s}>" 1>&2
+if [ -z "${opt_m}" ]; then
+  echo "ERROR:${0##*/}: image md5sum must be specified" 1>&2
   exit 1
 fi
 
@@ -79,6 +82,7 @@ DST_DIR="${opr_d}"
 
 LOG_PATH="${opt_l}"
 PERIPHERAL_FILE="${opt_p}"
+IMAGE_MD5SUM="${opt_m}"
 
 #####################################################################
 # common setting
@@ -98,10 +102,8 @@ fi
 # setting
 #####################################################################
 
+ABS_LOG_DIR=${ME_ABS_LOG_DIR%/}/
 MEASURER_MAIL=${ME_MEASURER_MAIL}
-ABSOLUTE_LOG_PATH=${ME_ABSOLUTE_LOG_PATH}
-
-IMAGE_MD5SUM=${ME_IMAGE_MD5SUM}
 REALDEVICE_SERIAL=${ME_REALDEVICE_SERIAL}
 
 #####################################################################
@@ -120,13 +122,13 @@ fi
 #####################################################################
 
 if printf '%s\n' "${LOG_PATH}" | grep -q '^/'; then
-  if ! printf '%s\n' "${LOG_PATH}" | grep -q '^'"${ABSOLUTE_LOG_PATH%/}/"'$'; then
+  if ! printf '%s\n' "${LOG_PATH}" | grep -q '^'"${ABS_LOG_DIR}"; then
     echo "ERROR:${0##*/}: invalid path specified <${LOG_PATH}>" 1>&2
     exit 1
   fi
 
   relative_log_path=$(
-    printf '%s\n' "${LOG_PATH}" | sed 's!^'"${ABSOLUTE_LOG_PATH%/}/"'!!'
+    printf '%s\n' "${LOG_PATH}" | sed 's!^'"${ABS_LOG_DIR%/}/"'!!'
   )
 else
   relative_log_path=${LOG_PATH}
