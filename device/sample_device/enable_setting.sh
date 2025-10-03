@@ -16,7 +16,22 @@ me_exec_evaluation() {
   local PARAM_FILE=$1
   local LOG_DIR=$2
 
+  local input_1
+  local input_2
+  local input_3
+
   echo "start: exec evaluation <${PARAM_FILE},${LOG_DIR}>"
+
+  input_1=$(jq -r '.input_1' "${PARAM_FILE}")
+  input_2=$(jq -r '.input_2' "${PARAM_FILE}")
+  input_3=$(jq -r '.input_3' "${PARAM_FILE}")
+
+  cat <<__EOF | sed 's!^ *!!'
+  input_1 = "${input_1}"
+  input_2 = "${input_2}"
+  input_3 = "${input_3}"
+__EOF
+
   sleep 1
   echo "end:   exec evaluation <${PARAM_FILE},${LOG_DIR}>"
 }
