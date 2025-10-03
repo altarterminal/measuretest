@@ -340,14 +340,12 @@ for me_i in $(seq 1 "${me_param_num}"); do
         echo "INFO:${0##*/}: the behavior setting is <continue> so procceed to the next evaluation" 1>&2
       else
         echo "INFO:${0##*/}: the behavior setting is <NOT continue> so exit" 1>&2
-        return "${me_exit_code}"
+        exit "${me_exit_code}"
       fi
       ;;
     *)
       echo "FATAL:${0##*/}: unknown error (${me_exit_code}) returned <${ME_DEVICE_NAME},${me_i}>" 1>&2
-      return "${me_exit_code}"
+      exit "${me_exit_code}"
       ;;
   esac
 done
-
-return 0

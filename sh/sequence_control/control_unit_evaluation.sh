@@ -52,7 +52,7 @@ me_determine_next_action() {
         printf 'return %d\n' "${me_exit_error}"; return
         ;;
       *)
-        echo "ERROR:${this_file##*/}: unknown exit code <${ME_EXIT_CODE}>" 1>&2
+        echo "ERROR:${me_this_file##*/}: unknown exit code <${ME_EXIT_CODE}>" 1>&2
         printf 'return %d\n' "${me_exit_fatal_error}"; return
         ;;
     esac
