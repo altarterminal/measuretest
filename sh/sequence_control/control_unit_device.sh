@@ -154,21 +154,21 @@ fi
 #####################################################################
 
 if [ -n "${ME_CUSTOM_IMAGE_MD5SUM:-}" ]; then
-  me_final_image_md5sum="${ME_CUSTOM_IMAGE_MD5SUM}"
+  me_image_md5sum="${ME_CUSTOM_IMAGE_MD5SUM}"
 else
-  me_final_image_md5sum="${ME_DEFAULT_IMAGE_MD5SUM}"
+  me_image_md5sum="${ME_DEFAULT_IMAGE_MD5SUM}"
 fi
 
-if ! printf '%s\n' "${me_final_image_md5sum}" | grep -Eq '^[0-9a-f]{32}$'; then
-  echo "ERROR:${0##*/}: invalid image md5sum <${me_final_image_md5sum}>" 1>&2
+if ! printf '%s\n' "${me_image_md5sum}" | grep -Eq '^[0-9a-f]{32}$'; then
+  echo "ERROR:${0##*/}: invalid image md5sum <${me_image_md5sum}>" 1>&2
   exit 1
 fi
 
-me_image_info=$("${ME_GET_IMAGE_INFO_SCRIPT}" "${me_final_image_md5sum}")
+me_image_info=$("${ME_GET_IMAGE_INFO_SCRIPT}" "${me_image_md5sum}")
 me_exit_code=$?
 
 if [ "${me_exit_code}" -ne 0 ]; then
-  echo "ERROR:${0##*/}: get image info failed <${me_final_image_md5sum}>" 1>&2
+  echo "ERROR:${0##*/}: get image info failed <${me_image_md5sum}>" 1>&2
   exit "${me_exit_code}"
 fi
 
@@ -284,12 +284,35 @@ else
 fi
 
 #####################################################################
+# variables in control part during execution
+#####################################################################
+
+me_t_device_name="${ME_DEVICE_NAME}"
+me_t_device_param_file="${ME_DEVICE_PARAM_FILE}"
+
+me_t_eval_log_dir="${ME_EVAL_LOG_DIR}"
+me_t_param_num="${me_param_num}"
+
+me_t_temp_param_file="${ME_TEMP_PARAM_FILE}"
+me_t_peripheral_file="${ME_PERIPHERAL_FILE}"
+me_t_image_md5sum="${me_image_md5sum}"
+
+me_t_is_continue_eval="${ME_IS_CONTINUE_EVAL}"
+
+me_t_exit_code=''
+me_t_i=''
+
+trap '
+  [ -e "${me_t_peripheral_file}" ] && rm "${me_t_peripheral_file}"
+  [ -e "${me_t_temp_param_file}" ] && rm "${me_t_temp_param_file}"
+  me_cleanup_all
+' EXIT
+
+#####################################################################
 # cleanup definition
 #####################################################################
 
-#unset ME_THIS_DIR
-unset ME_SETTING_FILE
-# unset ME_DEVICE_NAME
+unset ME_DEVICE_NAME
 unset ME_DEFAULT_IMAGE_MD5SUM
 unset ME_ABS_LOG_DIR
 unset ME_ABS_IMAGE_DIR
@@ -301,51 +324,80 @@ unset ME_TOP_DIR
 unset ME_THIS_DATE
 
 unset ME_DEVICE_DIR
-# unset ME_DEVICE_PARAM_FILE
+unset ME_DEVICE_PARAM_FILE
 
 unset ME_DEVICE_LOG_DIR
-# unset ME_EVAL_LOG_DIR
+unset ME_EVAL_LOG_DIR
 unset ME_DB_CONTROL_DIR
 unset ME_GET_IMAGE_INFO_SCRIPT
-unset ME_TEMP_PARAM_NAME
 
+unset ME_TEMP_PARAM_NAME
+unset ME_TEMP_PARAM_FILE
+unset ME_PERIPHERAL_NAME
+unset ME_PERIPHERAL_FILE
+
+unset ME_IS_CONTINUE_EVAL
+
+unset me_exit_code
 unset me_image_info
-unset me_image_relative_path
 unset me_image_file
+unset me_image_md5sum
+unset me_image_relative_path
+unset me_param_num
 
 #####################################################################
 # execute evaluation
 #####################################################################
 
-for me_i in $(seq 1 "${me_param_num}"); do
-  jq ".[$((me_i - 1))]" "${ME_DEVICE_PARAM_FILE}" >"${ME_TEMP_PARAM_FILE}"
+for me_t_i in $(seq 1 "${me_t_param_num}"); do
+  jq ".[$((me_t_i - 1))]" "${me_t_device_param_file}" >"${me_t_temp_param_file}"
 
   me_control_unit_evaluation \
-    "${ME_EVAL_LOG_DIR}" "${ME_TEMP_PARAM_FILE}" \
-    "${ME_PERIPHERAL_FILE}" "${me_final_image_md5sum}" \
-    "${me_i}"
-  me_exit_code=$?
+    "${me_t_eval_log_dir}" "${me_t_temp_param_file}" \
+    "${me_t_peripheral_file}" "${me_t_image_md5sum}" \
+    "${me_t_i}"
+  me_t_exit_code=$?
 
-  case "${me_exit_code}" in
+  case "${me_t_exit_code}" in
     0)
-      echo "INFO:${0##*/}: the evaluation succeeded <${ME_DEVICE_NAME},${me_i}>" 1>&2
+      printf 'INFO:%s: %s <%s,%d>' \
+        "${0##*/}" \
+        "the evaluation succeeded" \
+        "${me_t_device_name}" "${me_t_i}" 1>&2
       ;;
     "${ME_CONTROL_ERROR}")
-      echo "ERROR:${0##*/}: the evaluation failed but proceed to the next evaluation <${ME_DEVICE_NAME},${me_i}>" 1>&2
+      printf 'ERROR:%s: %s <%s,%d>' \
+        "${0##*/}" \
+        "the evaluation failed but proceed to the next evaluation" \
+        "${me_t_device_name}" "${me_t_i}" 1>&2
       ;;
     "${ME_CONTROL_REPEAT_ERROR}")
-      echo "ERROR:${0##*/}: the evaluation repeatedly failed <${ME_DEVICE_NAME},${me_i}>" 1>&2
+      printf 'ERROR:%s: %s <%s,%d>' \
+        "${0##*/}" \
+        "the evaluation repeatedly failed" \
+        "${me_t_device_name}" "${me_t_i}" 1>&2
 
-      if [ "${ME_IS_CONTINUE_EVAL}" = 'yes' ]; then
-        echo "INFO:${0##*/}: the behavior setting is <continue> so procceed to the next evaluation" 1>&2
+      if [ "${me_t_is_continue_eval}" = 'yes' ]; then
+        printf 'INFO:%s: %s' \
+          "${0##*/}" \
+          "the behavior setting is <continue> so procceed to the next evaluation" \
+          1>&2
       else
-        echo "INFO:${0##*/}: the behavior setting is <NOT continue> so exit" 1>&2
-        exit "${me_exit_code}"
+        printf 'INFO:%s: %s' \
+          "${0##*/}" \
+          "the behavior setting is <NOT continue> so exit" \
+          1>&2
+
+        exit "${me_t_exit_code}"
       fi
       ;;
     *)
-      echo "FATAL:${0##*/}: unknown error (${me_exit_code}) returned <${ME_DEVICE_NAME},${me_i}>" 1>&2
-      exit "${me_exit_code}"
+      printf 'FATAL:%s: %s <%s,%d>' \
+        "${0##*/}" \
+        "unknown error (${me_t_exit_code}) returned" \
+        "${me_t_device_name}" "${me_t_i}"\
+        1>&2
+      exit "${me_t_exit_code}"
       ;;
   esac
 done
