@@ -330,10 +330,10 @@ for me_i in $(seq 1 "${me_param_num}"); do
     0)
       echo "INFO:${0##*/}: the evaluation succeeded <${ME_DEVICE_NAME},${me_i}>" 1>&2
       ;;
-    1)
+    "${ME_CONTROL_ERROR}")
       echo "ERROR:${0##*/}: the evaluation failed but proceed to the next evaluation <${ME_DEVICE_NAME},${me_i}>" 1>&2
       ;;
-    2)
+    "${ME_CONTROL_REPEAT_ERROR}")
       echo "ERROR:${0##*/}: the evaluation repeatedly failed <${ME_DEVICE_NAME},${me_i}>" 1>&2
 
       if [ "${ME_IS_CONTINUE_EVAL}" = 'yes' ]; then

@@ -8,12 +8,7 @@ me_determine_next_action() {
 
   local me_this_file
 
-  local me_exit_normal=0
-  local me_exit_error=1
-  local me_exit_repeat_error=2
-  local me_exit_fatal_error=3
-
-  local me_this_file=${BASH_SOURCE[0]}
+  local me_this_file=$(realpath "${BASH_SOURCE[0]}")
 
   if [ "${ME_EXIT_CODE}" -eq 0 ]; then
     #################################################################
@@ -24,7 +19,7 @@ me_determine_next_action() {
       # the first try
       printf '%s\n' ':'; return
     else
-      printf 'return %d\n' "${me_exit_normal}"; return
+      printf 'return %d\n' '0'; return
     fi
   else
     #################################################################
@@ -34,7 +29,7 @@ me_determine_next_action() {
     echo "ERROR:${me_this_file##*/}: failed at <${ME_FUNC_NAME}> with exit code <${ME_EXIT_CODE}>" 1>&2
 
     if [ "${ME_TRY_COUNT}" -gt 3 ]; then
-      printf 'return %d\n' "${me_exit_repeat_error}"; return
+      printf 'return %d\n' "${ME_CONTROL_REPEAT_ERROR}"; return
     fi
 
     case "${ME_EXIT_CODE}" in
@@ -49,11 +44,11 @@ me_determine_next_action() {
         ;;
       211|213)
         # next evaluation
-        printf 'return %d\n' "${me_exit_error}"; return
+        printf 'return %d\n' "${ME_CONTROL_ERROR}"; return
         ;;
       *)
         echo "ERROR:${me_this_file##*/}: unknown exit code <${ME_EXIT_CODE}>" 1>&2
-        printf 'return %d\n' "${me_exit_fatal_error}"; return
+        printf 'return %d\n' "${ME_CONTROL_FATAL_ERROR}"; return
         ;;
     esac
   fi
