@@ -353,6 +353,7 @@ for me_t_i in $(seq 1 "${me_t_param_num}"); do
   jq ".[$((me_t_i - 1))]" "${me_t_device_param_file}" >"${me_t_temp_param_file}"
 
   me_control_unit_evaluation \
+    "${me_t_device_name}" \
     "${me_t_eval_log_dir}" "${me_t_temp_param_file}" \
     "${me_t_peripheral_file}" "${me_t_image_md5sum}" \
     "${me_t_i}"

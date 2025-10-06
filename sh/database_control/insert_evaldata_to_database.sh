@@ -7,7 +7,7 @@ set -u
 
 print_usage_and_exit() {
   cat <<USAGE 1>&2
-Usage   : ${0##*/} <evaldata dir>
+Usage   : ${0##*/} <device name> <evaldata dir>
 Options : -g
 
 Insert evaldata in <evaldata dir> into the database.
@@ -21,7 +21,8 @@ USAGE
 # parameter
 #####################################################################
 
-opr=''
+opr_n=''
+opr_e=''
 opt_g='no'
 
 i=1
@@ -30,8 +31,10 @@ for arg in ${1+"$@"}; do
     -h|--help|--version) print_usage_and_exit ;;
     -g)                  opt_g='yes'          ;;
     *)
-      if [ $i -eq $# ] && [ -z "${opr}" ]; then
-        opr="${arg}"
+      if [ $((i + 1)) -eq $# ] && [ -z "${opr_n}" ]; then
+        opr_n="${arg}"
+      elif [ $i -eq $# ] && [ -z "${opr_e}" ]; then
+        opr_e="${arg}"
       else
         echo "ERROR:${0##*/}: invalid args" 1>&2
         exit 1
@@ -52,7 +55,8 @@ if [ ! -d "${opr}" ]; then
   exit 1
 fi
 
-EVALDATA_DIR="${opr}"
+DEVICE_NAME="${opr_n}"
+EVALDATA_DIR="${opr_e}"
 
 IS_SAME_GROUP="${opt_g}"
 
@@ -73,6 +77,9 @@ fi
 #####################################################################
 # setting
 #####################################################################
+
+PROJECT_NAME="${ME_PROJECT_NAME}"
+PROJECT_VERSION="${ME_PROJECT_VERSION}"
 
 LIST_FILE="${EVALDATA_DIR}/_evaldata_list.txt"
 
@@ -106,4 +113,6 @@ printf '%s\n' "${evaldata_list}" | xargs -L 1 realpath >"${LIST_FILE}"
 # insert
 #####################################################################
 
-"${IF_SCRIPT}" ${OPT_SAME_GROUP} -l "${LIST_FILE}"
+"${IF_SCRIPT}" ${OPT_SAME_GROUP} -l \
+  "${PROJECT_NAME}" "${PROJECT_VERSION}" "${DEVICE_NAME}" \
+  "${LIST_FILE}"

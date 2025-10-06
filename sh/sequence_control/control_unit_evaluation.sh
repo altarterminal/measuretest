@@ -55,11 +55,12 @@ me_determine_next_action() {
 }
 
 me_control_unit_evaluation() {
-  local ME_EVAL_LOG_DIR=$1
-  local ME_PARAM_FILE=$2
-  local ME_PERIPHERAL_FILE=$3
-  local ME_IMAGE_MD5SUM=$4
-  local ME_PARAM_NUMBER=$5
+  local ME_DEVICE_NAME=$1
+  local ME_EVAL_LOG_DIR=$2
+  local ME_PARAM_FILE=$3
+  local ME_PERIPHERAL_FILE=$4
+  local ME_IMAGE_MD5SUM=$5
+  local ME_PARAM_NUMBER=$6
 
   local me_exit_code
   local me_try_count
@@ -124,7 +125,7 @@ me_control_unit_evaluation() {
     me_exit_code=$?; if [ "${me_exit_code}" -ne 0 ]; then continue; fi
 
     me_func_name=me_insert_evaldata_to_database
-    eval "${me_func_name}" "${me_evaldata_control_dir}"
+    eval "${me_func_name}" "${ME_DEVICE_NAME}" "${me_evaldata_control_dir}"
     me_exit_code=$?; if [ "${me_exit_code}" -ne 0 ]; then continue; fi
   done
 }
