@@ -45,19 +45,23 @@ for arg in ${1+"$@"}; do
   i=$((i + 1))
 done
 
-if [ -z "${opr}" ]; then
+if [ -z "${opr_n}" ]; then
+  echo "ERROR:${0##*/}: device name must be specified" 1>&2
+  exit 1
+fi
+
+if [ -z "${opr_e}" ]; then
   echo "ERROR:${0##*/}: evaldata directory must be specified" 1>&2
   exit 1
 fi
 
-if [ ! -d "${opr}" ]; then
-  echo "ERROR:${0##*/}: invalid directory specified <${opr}>" 1>&2
+if [ ! -d "${opr_e}" ]; then
+  echo "ERROR:${0##*/}: invalid directory specified <${opr_e}>" 1>&2
   exit 1
 fi
 
 DEVICE_NAME="${opr_n}"
 EVALDATA_DIR="${opr_e}"
-
 IS_SAME_GROUP="${opt_g}"
 
 #####################################################################
