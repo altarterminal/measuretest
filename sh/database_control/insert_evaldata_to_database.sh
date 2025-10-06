@@ -100,7 +100,7 @@ fi
 # check directory
 #####################################################################
 
-evaldata_list=(find "${EVALDATA_DIR}" -maxdepth 1 -name '*.json' -type f)
+evaldata_list=$(find "${EVALDATA_DIR}" -maxdepth 1 -name '*.json' -type f)
 
 if [ -z "${evaldata_list}" ]; then
   echo "ERROR:${0##*/}: no file found <${EVALDATA_DIR}>" 1>&2
