@@ -2,10 +2,10 @@
 set -u
 
 me_power_on_board() {
-  local THIS_FILE=${BASH_SOURCE[0]}
+  local ME_THIS_FILE=$(realpath "${BASH_SOURCE[0]}")
 
   if [ -z "${ARDUINO:-}" ]; then
-    echo "ERROR:${THIS_FILE##*/}: variable ARDUINO not set" 1>&2
+    echo "ERROR:${ME_THIS_FILE##*/}: variable not defined <ARDUINO>" 1>&2
     return 1
   fi
 
