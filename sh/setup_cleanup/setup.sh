@@ -105,6 +105,11 @@ if [ -z "${ABS_IMAGE_DIR}" ]; then
   exit 1
 fi
 
+if [ -z "${MEASURER_MAIL}" ]; then
+  echo "ERROR:${0##*/}: MEASURER_MAIL not found <${PARAM_FILE}>" 1>&2
+  exit 1
+fi
+
 if [ ! -d "${ABS_LOG_DIR}" ] || [ ! -w "${ABS_LOG_DIR}" ]; then
   echo "ERROR:${0##*/}: invalid path specified <${ABS_LOG_DIR}>" 1>&2
   exit 1
