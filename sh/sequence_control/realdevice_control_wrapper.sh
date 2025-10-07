@@ -14,7 +14,9 @@ fi
 
 . "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/flash_image.sh"
 . "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/power_on_board.sh"
+. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/power_off_board.sh"
 . "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/boot_process.sh"
+. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/shutdown_process.sh"
 . "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/serial.sh"
 . "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/adb.sh"
 
