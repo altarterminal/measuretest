@@ -7,7 +7,7 @@ me_boot_process() {
   local me_exit_code
 
   if ! type boot_board >/dev/null 2>&1; then
-    echo "ERROR:${ME_THIS_FILE##*/}: function not defined <wait_boot>" 1>&2
+    echo "ERROR:${ME_THIS_FILE##*/}: function not defined <boot_board>" 1>&2
     return 1
   fi
 

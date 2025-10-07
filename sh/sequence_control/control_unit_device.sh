@@ -184,6 +184,18 @@ if [ ! -f "${me_image_file}" ] || [ ! -r "${me_image_file}" ]; then
 fi
 
 #####################################################################
+# enable realdevice control
+#####################################################################
+
+me_realdevice_control_setting
+me_exit_code=$?
+
+if [ "${me_exit_code}" -ne 0 ]; then
+  echo "ERROR:${0##*/}: enable realdevice control failed" 1>&2
+  exit "${me_exit_code}"
+fi
+
+#####################################################################
 # flash image
 #####################################################################
 

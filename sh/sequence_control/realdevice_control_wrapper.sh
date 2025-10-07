@@ -1,10 +1,10 @@
 #!/bin/bash
 set -u
 
-ME_REALDEVICE_CONTROL_WRAPPER_THIS_FILE=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR=$(dirname "${ME_REALDEVICE_CONTROL_THIS_FILE}")
+ME_REALDEVICE_CONTROL_WRAPPER_THIS_FILE=$(realpath "${BASH_SOURCE[0]}")
+ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR=$(dirname "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_FILE}")
 
-. "${ME_REALDEVICE_CONTROL_THIS_DIR}/../realdevice_control/realdevice_control_setting.sh"
+. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/realdevice_control_setting.sh"
 me_realdevice_control_wrapper_exit_code=$?
 
 if [ "${me_realdevice_control_wrapper_exit_code}" -ne 0 ]; then
