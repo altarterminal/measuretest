@@ -80,6 +80,8 @@ ME_GET_IMAGE_INFO_SCRIPT="${ME_DB_CONTROL_DIR}/get_image_info.sh"
 ME_TEMP_PARAM_NAME="${TMPDIR:-/tmp}/${0##*/}_${ME_THIS_DATE}_param_XXXXXX"
 ME_PERIPHERAL_NAME="${TMPDIR:-/tmp}/${0##*/}_${ME_THIS_DATE}_perif_XXXXXX"
 
+me_exit_proc=':'
+
 #####################################################################
 # check parameter
 #####################################################################
@@ -219,6 +221,9 @@ if [ "${me_exit_code}" -ne 0 ]; then
   exit "${me_exit_code}"
 fi
 
+me_exit_proc="${me_exit_proc}; me_shutdown_process"
+trap "${me_exit_proc}" EXIT
+
 #####################################################################
 # prepare
 #####################################################################
@@ -245,10 +250,8 @@ fi
 
 ME_PERIPHERAL_FILE=$(mktemp "${ME_PERIPHERAL_NAME}")
 
-# This is overridden after this
-trap '
-  [ -e "${ME_PERIPHERAL_FILE}" ] && rm "${ME_PERIPHERAL_FILE}"
-' EXIT
+me_exit_proc="${me_exit_proc}; [ -e ${ME_PERIPHERAL_FILE} ] && rm ${ME_PERIPHERAL_FILE}"
+trap "${me_exit_proc}" EXIT
 
 me_get_peripheral_condition >"${ME_PERIPHERAL_FILE}"
 me_exit_code=$?
@@ -271,17 +274,17 @@ if [ "${me_exit_code}" -ne 0 ]; then
   exit 1
 fi
 
+me_exit_proc="${me_exit_proc}; me_cleanup_all"
+trap "${me_exit_proc}" EXIT
+
 #####################################################################
 # set cleanup process
 #####################################################################
 
 ME_TEMP_PARAM_FILE=$(mktemp "${ME_TEMP_PARAM_NAME}")
 
-trap '
-  [ -e "${ME_PERIPHERAL_FILE}" ] && rm "${ME_PERIPHERAL_FILE}"
-  [ -e "${ME_TEMP_PARAM_FILE}" ] && rm "${ME_TEMP_PARAM_FILE}"
-  me_cleanup_all
-' EXIT
+me_exit_proc="${me_exit_proc}; [ -e ${ME_TEMP_PARAM_FILE} ] && rm ${ME_TEMP_PARAM_FILE}"
+trap "${me_exit_proc}" EXIT
 
 #####################################################################
 # determine bihavior for repeated error
@@ -313,12 +316,6 @@ me_t_is_continue_eval="${ME_IS_CONTINUE_EVAL}"
 
 me_t_exit_code=''
 me_t_i=''
-
-trap '
-  [ -e "${me_t_peripheral_file}" ] && rm "${me_t_peripheral_file}"
-  [ -e "${me_t_temp_param_file}" ] && rm "${me_t_temp_param_file}"
-  me_cleanup_all
-' EXIT
 
 #####################################################################
 # cleanup definition
@@ -356,6 +353,7 @@ unset me_image_file
 unset me_image_md5sum
 unset me_image_relative_path
 unset me_param_num
+unset me_exit_proc
 
 #####################################################################
 # execute evaluation
