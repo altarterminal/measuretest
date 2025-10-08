@@ -1,6 +1,55 @@
 #!/bin/bash
 set -u
 
+me_determine_next_action_before_judge() {
+  local ME_EXIT_CODE=$1
+
+  local me_this_file
+
+  me_this_file=$(realpath "${BASH_SOURCE[0]}")
+
+  case "${ME_EXIT_CODE}" in
+    "${ME_ERROR_TO_NEXT}"|\
+    "${ME_ERROR_WITH_REBOOT_TO_NEXT}")
+       printf 'return %d\n' "${ME_CONTROL_ERROR}"
+       ;;
+    "${ME_ERROR_GENERAL}"|\
+    "${ME_ERROR_TO_RETRY}"|\
+    "${ME_ERROR_WITH_REBOOT_TO_RETRY}")
+       printf '%s\n' ':'
+       ;;
+    *)
+      echo "ERROR:${me_this_file##*/}: unknown exit code <${ME_EXIT_CODE}>" 1>&2
+      printf 'return %d\n' "${ME_CONTROL_FATAL_ERROR}"
+      ;;
+  esac
+}
+
+me_determine_next_action_after_judge() {
+  local ME_EXIT_CODE=$1
+
+  local me_this_file
+
+  me_this_file=$(realpath "${BASH_SOURCE[0]}")
+
+  case "${ME_EXIT_CODE}" in
+    "${ME_ERROR_GENERAL}"|\
+    "${ME_ERROR_TO_NEXT}"|\
+    "${ME_ERROR_WITH_REBOOT_TO_NEXT}")
+       printf 'return %d\n' "${ME_CONTROL_ERROR}"
+       ;;
+    "${ME_ERROR_TO_RETRY}"|\
+    "${ME_ERROR_WITH_REBOOT_TO_RETRY}")
+       echo "WARN:${me_this_file##*/}: invalid exit code after judge <${ME_EXIT_CODE}>" 1>&2
+       printf 'return %d\n' "${ME_CONTROL_ERROR}"
+       ;;
+    *)
+      echo "ERROR:${me_this_file##*/}: unknown exit code <${ME_EXIT_CODE}>" 1>&2
+      printf 'return %d\n' "${ME_CONTROL_FATAL_ERROR}"
+      ;;
+  esac
+}
+
 me_determine_next_action() {
   local ME_EXIT_CODE=$1
   local ME_FUNC_NAME=$2
@@ -8,7 +57,7 @@ me_determine_next_action() {
 
   local me_this_file
 
-  local me_this_file=$(realpath "${BASH_SOURCE[0]}")
+  me_this_file=$(realpath "${BASH_SOURCE[0]}")
 
   if [ "${ME_EXIT_CODE}" -eq 0 ]; then
     #################################################################
@@ -17,9 +66,9 @@ me_determine_next_action() {
 
     if [ "${ME_TRY_COUNT}" -eq 1 ]; then
       # the first try
-      printf '%s\n' ':'; return
+      printf '%s\n' ':'
     else
-      printf 'return %d\n' '0'; return
+      printf 'return %d\n' '0'
     fi
   else
     #################################################################
@@ -29,26 +78,37 @@ me_determine_next_action() {
     echo "ERROR:${me_this_file##*/}: failed at <${ME_FUNC_NAME}> with exit code <${ME_EXIT_CODE}>" 1>&2
 
     if [ "${ME_TRY_COUNT}" -gt 3 ]; then
-      printf 'return %d\n' "${ME_CONTROL_REPEAT_ERROR}"; return
+      printf 'return %d\n' "${ME_CONTROL_REPEAT_ERROR}"
+      return
     fi
 
     case "${ME_EXIT_CODE}" in
-      212|213) me_boot_process ;;
-      *)       :               ;;
+      "${ME_ERROR_WITH_REBOOT_TO_NEXT}"|\
+      "${ME_ERROR_WITH_REBOOT_TO_RETRY}")
+        me_boot_process
+        ;;
+      *)
+        :
+        ;;
     esac
 
-    case "${ME_EXIT_CODE}" in
-      1|210|212)
-        # current evaluation
-        printf '%s\n' ':'; return
+    case "${ME_FUNC_NAME}" in
+      'me_setup_evaluation'|\
+      'me_exec_evaluation'|\
+      'me_cleanup_evaluation'|\
+      'me_judge_evaluation_execution')
+        me_determine_next_action_after_judge "${ME_EXIT_CODE}"
         ;;
-      211|213)
-        # next evaluation
-        printf 'return %d\n' "${ME_CONTROL_ERROR}"; return
+      'me_generate_evaluation_result')
+        me_determine_next_action_before_judge "${ME_EXIT_CODE}"
+        ;;
+      'me_supplement_evaldata'|\
+      'me_insert_evaldata_to_database')
+        printf 'return %d\n' "${ME_CONTROL_ERROR}"
         ;;
       *)
         echo "ERROR:${me_this_file##*/}: unknown exit code <${ME_EXIT_CODE}>" 1>&2
-        printf 'return %d\n' "${ME_CONTROL_FATAL_ERROR}"; return
+        printf 'return %d\n' "${ME_CONTROL_FATAL_ERROR}"
         ;;
     esac
   fi
@@ -68,10 +128,10 @@ me_control_unit_evaluation() {
   local me_action
   local me_unit_eval_log_dir_base
   local me_unit_eval_log_dir
-  local me_unit_eval_param_file
   local me_logdata_dir
   local me_evaldata_device_dir
   local me_evaldata_control_dir
+  local me_unit_eval_param_file
 
   me_exit_code=0
   me_try_count=0
@@ -125,7 +185,11 @@ me_control_unit_evaluation() {
     me_exit_code=$?; if [ "${me_exit_code}" -ne 0 ]; then continue; fi
 
     me_func_name=me_insert_evaldata_to_database
-    eval "${me_func_name}" "${ME_DEVICE_NAME}" "${me_evaldata_control_dir}"
+    if [ "${ME_PARAM_NUMBER}" -eq 1 ]; then
+      eval "${me_func_name}"    "${ME_DEVICE_NAME}" "${me_evaldata_control_dir}"
+    else
+      eval "${me_func_name}" -g "${ME_DEVICE_NAME}" "${me_evaldata_control_dir}"
+    fi
     me_exit_code=$?; if [ "${me_exit_code}" -ne 0 ]; then continue; fi
   done
 }
