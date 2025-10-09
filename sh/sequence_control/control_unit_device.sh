@@ -290,9 +290,9 @@ trap "${me_exit_proc}" EXIT
 # determine bihavior for repeated error
 #####################################################################
 
-if [ -z "${ME_BEHAVIOR_AFTER_REPETED_ERROR:-}" ]; then
+if [ -z "${ME_BEHAVIOR_AFTER_REPEATED_ERROR:-}" ]; then
   ME_IS_CONTINUE_EVAL='no'
-elif [ "${ME_BEHAVIOR_AFTER_REPETED_ERROR}" = '0' ]; then
+elif [ "${ME_BEHAVIOR_AFTER_REPEATED_ERROR}" = '0' ]; then
   ME_IS_CONTINUE_EVAL='no'
 else
   ME_IS_CONTINUE_EVAL='yes'
