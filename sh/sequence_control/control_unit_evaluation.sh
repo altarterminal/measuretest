@@ -1,7 +1,7 @@
 #!/bin/bash
 set -u
 
-me_determine_next_action_before_judge() {
+me_determine_next_action_before_judge_error() {
   local ME_EXIT_CODE=$1
 
   local me_this_file
@@ -25,7 +25,7 @@ me_determine_next_action_before_judge() {
   esac
 }
 
-me_determine_next_action_after_judge() {
+me_determine_next_action_after_judge_error() {
   local ME_EXIT_CODE=$1
 
   local me_this_file
@@ -36,13 +36,13 @@ me_determine_next_action_after_judge() {
     "${ME_ERROR_GENERAL}"|\
     "${ME_ERROR_TO_NEXT}"|\
     "${ME_ERROR_WITH_REBOOT_TO_NEXT}")
-       printf 'return %d\n' "${ME_CONTROL_ERROR}"
-       ;;
+      printf 'return %d\n' "${ME_CONTROL_ERROR}"
+      ;;
     "${ME_ERROR_TO_RETRY}"|\
     "${ME_ERROR_WITH_REBOOT_TO_RETRY}")
-       echo "WARN:${me_this_file##*/}: invalid exit code after judge <${ME_EXIT_CODE}>" 1>&2
-       printf 'return %d\n' "${ME_CONTROL_ERROR}"
-       ;;
+      echo "WARN:${me_this_file##*/}: invalid exit code after judge <${ME_EXIT_CODE}>" 1>&2
+      printf 'return %d\n' "${ME_CONTROL_ERROR}"
+      ;;
     *)
       echo "ERROR:${me_this_file##*/}: unknown exit code <${ME_EXIT_CODE}>" 1>&2
       printf 'return %d\n' "${ME_CONTROL_FATAL_ERROR}"
@@ -75,7 +75,8 @@ me_determine_next_action() {
     # NOT normal state
     #################################################################
 
-    echo "ERROR:${me_this_file##*/}: failed at <${ME_FUNC_NAME}> with exit code <${ME_EXIT_CODE}>" 1>&2
+    printf 'ERROR:%s: failed at <%s> with exit code <%s>\n' \
+      "${me_this_file##*/}" "${ME_FUNC_NAME}" "${ME_EXIT_CODE}" 1>&2
 
     if [ "${ME_TRY_COUNT}" -gt 3 ]; then
       printf 'return %d\n' "${ME_CONTROL_REPEAT_ERROR}"
@@ -97,10 +98,10 @@ me_determine_next_action() {
       'me_exec_evaluation'|\
       'me_cleanup_evaluation'|\
       'me_judge_evaluation_execution')
-        me_determine_next_action_after_judge "${ME_EXIT_CODE}"
+        me_determine_next_action_after_judge_error "${ME_EXIT_CODE}"
         ;;
       'me_generate_evaluation_result')
-        me_determine_next_action_before_judge "${ME_EXIT_CODE}"
+        me_determine_next_action_before_judge_error "${ME_EXIT_CODE}"
         ;;
       'me_supplement_evaldata'|\
       'me_insert_evaldata_to_database')
