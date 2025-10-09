@@ -291,11 +291,11 @@ trap "${me_exit_proc}" EXIT
 #####################################################################
 
 if [ -z "${ME_BEHAVIOR_AFTER_REPETED_ERROR:-}" ]; then
-  ME_IS_CONTINUE_EVAL='yes'
-elif [ "${ME_BEHAVIOR_AFTER_REPETED_ERROR}" = '0' ]; then
-  ME_IS_CONTINUE_EVAL='yes'
-else
   ME_IS_CONTINUE_EVAL='no'
+elif [ "${ME_BEHAVIOR_AFTER_REPETED_ERROR}" = '0' ]; then
+  ME_IS_CONTINUE_EVAL='no'
+else
+  ME_IS_CONTINUE_EVAL='yes'
 fi
 
 #####################################################################
