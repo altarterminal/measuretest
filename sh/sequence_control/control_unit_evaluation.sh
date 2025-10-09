@@ -9,14 +9,14 @@ me_determine_next_action_before_judge_error() {
   me_this_file=$(realpath "${BASH_SOURCE[0]}")
 
   case "${ME_EXIT_CODE}" in
-    "${ME_ERROR_TO_NEXT}"|\
-    "${ME_ERROR_WITH_REBOOT_TO_NEXT}")
-       printf 'return %d\n' "${ME_CONTROL_ERROR}"
-       ;;
     "${ME_ERROR_GENERAL}"|\
     "${ME_ERROR_TO_RETRY}"|\
     "${ME_ERROR_WITH_REBOOT_TO_RETRY}")
        printf '%s\n' ':'
+       ;;
+    "${ME_ERROR_TO_NEXT}"|\
+    "${ME_ERROR_WITH_REBOOT_TO_NEXT}")
+       printf 'return %d\n' "${ME_CONTROL_ERROR}"
        ;;
     *)
       echo "ERROR:${me_this_file##*/}: unknown exit code <${ME_EXIT_CODE}>" 1>&2
@@ -40,7 +40,7 @@ me_determine_next_action_after_judge_error() {
       ;;
     "${ME_ERROR_TO_RETRY}"|\
     "${ME_ERROR_WITH_REBOOT_TO_RETRY}")
-      echo "WARN:${me_this_file##*/}: invalid exit code after judge <${ME_EXIT_CODE}>" 1>&2
+      echo "WARN:${me_this_file##*/}: invalid exit code from func after judge <${ME_EXIT_CODE}>" 1>&2
       printf 'return %d\n' "${ME_CONTROL_ERROR}"
       ;;
     *)
@@ -98,10 +98,10 @@ me_determine_next_action() {
       'me_exec_evaluation'|\
       'me_cleanup_evaluation'|\
       'me_judge_evaluation_execution')
-        me_determine_next_action_after_judge_error "${ME_EXIT_CODE}"
+        me_determine_next_action_before_judge_error "${ME_EXIT_CODE}"
         ;;
       'me_generate_evaluation_result')
-        me_determine_next_action_before_judge_error "${ME_EXIT_CODE}"
+        me_determine_next_action_after_judge_error "${ME_EXIT_CODE}"
         ;;
       'me_supplement_evaldata'|\
       'me_insert_evaldata_to_database')
