@@ -1,4 +1,5 @@
 #!/bin/bash
+set -u
 
 ME_ERROR_GENERAL=1
 ME_ERROR_SETUP_ALL=200
