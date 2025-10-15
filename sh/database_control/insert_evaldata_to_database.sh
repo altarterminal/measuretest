@@ -100,18 +100,32 @@ fi
 # check directory
 #####################################################################
 
-evaldata_list=$(find "${EVALDATA_DIR}" -maxdepth 1 -name '*.json' -type f)
+evaldata_json_list=$(find "${EVALDATA_DIR}" -maxdepth 1 -name '*.json' -type f)
 
-if [ -z "${evaldata_list}" ]; then
+if [ -z "${evaldata_json_list}" ]; then
   echo "ERROR:${0##*/}: no file found <${EVALDATA_DIR}>" 1>&2
   exit 1
+fi
+
+printf '%s\n' "${evaldata_json_list}" |
+  while read -r evaldata_json; do
+    if ! jq . "${evaldata_json}" >/dev/null 2>&1; then
+      echo "ERROR:${0##*/}: not follow the JSON format <${evaldata_json}>" 1>&2
+      exit 1
+    fi
+  done
+exit_code=$?
+
+if [ "${exit_code}" -ne 0 ]; then
+  echo "ERROR:${0##*/}: some files are invalid for JSON" 1>&2
+  exit "${exit_code}"
 fi
 
 #####################################################################
 # prepare list
 #####################################################################
 
-printf '%s\n' "${evaldata_list}" | xargs -L 1 realpath >"${LIST_FILE}"
+printf '%s\n' "${evaldata_json_list}" | xargs -L 1 realpath >"${LIST_FILE}"
 
 #####################################################################
 # insert

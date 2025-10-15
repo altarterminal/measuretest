@@ -107,18 +107,32 @@ MEASURER_MAIL=${ME_MEASURER_MAIL}
 REALDEVICE_SERIAL=${ME_REALDEVICE_SERIAL}
 
 #####################################################################
-# check src directory
+# check target files
 #####################################################################
 
-file_num=$(find "${SRC_DIR}" -maxdepth 1 -name '*.json' | wc -l)
+src_json_list=$(find "${SRC_DIR}" -maxdepth 1 -name '*.json' -type f)
 
-if [ "${file_num}" -eq 0 ]; then
+if [ -z "${src_json_list}" ]; then
   echo "ERROR:${0##*/}: no file found <${SRC_DIR}>" 1>&2
   exit 1
 fi
 
+printf '%s\n' "${src_json_list}" |
+  while read -r src_json; do
+    if ! jq . "${src_json}" >/dev/null 2>&1; then
+      echo "ERROR:${0##*/}: not follow the JSON format <${src_json}>" 1>&2
+      exit 1
+    fi
+  done
+exit_code=$?
+
+if [ "${exit_code}" -ne 0 ]; then
+  echo "ERROR:${0##*/}: some files are invalid for JSON" 1>&2
+  exit "${exit_code}"
+fi
+
 #####################################################################
-# check log directory
+# get relative log path
 #####################################################################
 
 if printf '%s\n' "${LOG_PATH}" | grep -q '^/'; then
@@ -135,7 +149,7 @@ else
 fi
 
 #####################################################################
-# check peripheral file
+# get peripheral status
 #####################################################################
 
 if ! jq . "${PERIPHERAL_FILE}" >/dev/null 2>&1; then
@@ -155,13 +169,8 @@ mkdir -p "${DST_DIR}"
 # convert
 #####################################################################
 
-find "${SRC_DIR}" -maxdepth 1 -name '*.json' |
+printf '%s\n' "${src_json_list}" |
   while read -r src_json; do
-    if ! jq . "${src_json}" >/dev/null 2>&1; then
-      echo "ERROR:${0##*/}: not follow the JSON format <${src_json}>" 1>&2
-      exit 1
-    fi
-
     dst_json_base=$(basename "${src_json}")
     dst_json=${DST_DIR}/${dst_json_base}
 
