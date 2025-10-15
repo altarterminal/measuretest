@@ -185,16 +185,11 @@ if [ ! -f "${me_image_file}" ] || [ ! -r "${me_image_file}" ]; then
   exit 1
 fi
 
-#####################################################################
-# enable realdevice control
-#####################################################################
+me_actual_md5sum=$(md5sum "${me_image_file}" | awk '{ print $1; }')
 
-me_realdevice_control_setting
-me_exit_code=$?
-
-if [ "${me_exit_code}" -ne 0 ]; then
-  echo "ERROR:${0##*/}: enable realdevice control failed" 1>&2
-  exit "${me_exit_code}"
+if [ "${me_image_md5sum}" != "${me_actual_md5sum}" ]; then
+  echo "ERROR:${0##*/}: image md5sum not match" 1>&2
+  exit 1
 fi
 
 #####################################################################
@@ -351,6 +346,7 @@ unset me_exit_code
 unset me_image_info
 unset me_image_file
 unset me_image_md5sum
+unset me_actual_md5sum
 unset me_image_relative_path
 unset me_param_num
 unset me_exit_proc

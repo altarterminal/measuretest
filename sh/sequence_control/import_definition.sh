@@ -44,7 +44,7 @@ me_imp_exit_code=$?
 
 if [ "${me_imp_exit_code}" -ne 0 ]; then
   echo "ERROR:${ME_IMP_THIS_FILE##*/}: invalid setting file <${ME_IMP_DEVICE_SETTING_FILE}>" 1>&2
-  return 1
+  return "${me_imp_exit_code}"
 fi
 
 #####################################################################
@@ -57,10 +57,15 @@ fi
 # import sequence control 
 #####################################################################
 
-. "${ME_IMP_THIS_DIR}/control_unit_evaluation.sh"
-. "${ME_IMP_THIS_DIR}/check_interface_implement.sh"
-. "${ME_IMP_THIS_DIR}/get_peripheral_condition.sh"
 . "${ME_IMP_THIS_DIR}/sequence_control_wrapper.sh"
+
+me_import_sequence_control
+me_imp_exit_code=$?
+
+if [ "${me_imp_exit_code}" -ne 0 ]; then
+  echo "ERROR:${ME_IMP_THIS_FILE##*/}: import sequence control failed" 1>&2
+  return "${me_imp_exit_code}"
+fi
 
 #####################################################################
 # import database control
@@ -73,6 +78,14 @@ fi
 #####################################################################
 
 . "${ME_IMP_THIS_DIR}/realdevice_control_wrapper.sh"
+
+me_import_realdevice_control
+me_imp_exit_code=$?
+
+if [ "${me_imp_exit_code}" -ne 0 ]; then
+  echo "ERROR:${ME_IMP_THIS_FILE##*/}: import realdevice control failed" 1>&2
+  return "${me_imp_exit_code}"
+fi
 
 #####################################################################
 # cleanup

@@ -1,25 +1,29 @@
 #!/bin/bash
 set -u
 
-ME_REALDEVICE_CONTROL_WRAPPER_THIS_FILE=$(realpath "${BASH_SOURCE[0]}")
-ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR=$(dirname "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_FILE}")
+me_import_realdevice_control() {
+  local me_exit_code
+  local me_this_file
+  local me_this_dir
+  local me_realdevice_control_dir
 
-. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/realdevice_control_setting.sh"
-me_realdevice_control_wrapper_exit_code=$?
+  me_this_file=$(realpath "${BASH_SOURCE[0]}")
+  me_this_dir=$(dirname "${me_this_file}")
+  me_realdevice_control_dir="${me_this_dir}/../realdevice_control"
 
-if [ "${me_realdevice_control_wrapper_exit_code}" -ne 0 ]; then
-  echo "ERROR:${ME_REALDEVICE_CONTROL_WRAPPER_THIS_FILE##*/}: import failed <realdevice_control_setting.sh>" 1>&2
-  return "${me_realdevice_control_wrapper_exit_code}"
-fi
+  . "${me_realdevice_control_dir}/realdevice_control_setting.sh"
+  me_exit_code=$?
 
-. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/flash_image.sh"
-. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/power_on_board.sh"
-. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/power_off_board.sh"
-. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/boot_process.sh"
-. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/shutdown_process.sh"
-. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/serial.sh"
-. "${ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR}/../realdevice_control/adb.sh"
+  if [ "${me_exit_code}" -ne 0 ]; then
+    echo "ERROR:${me_this_file##*/}: import failed <realdevice_control_setting.sh>" 1>&2
+    return "${me_exit_code}"
+  fi
 
-unset ME_REALDEVICE_CONTROL_WRAPPER_THIS_FILE
-unset ME_REALDEVICE_CONTROL_WRAPPER_THIS_DIR
-unset me_realdevice_control_wrapper_exit_code
+  . "${me_realdevice_control_dir}/flash_image.sh"
+  . "${me_realdevice_control_dir}/power_on_board.sh"
+  . "${me_realdevice_control_dir}/power_off_board.sh"
+  . "${me_realdevice_control_dir}/boot_process.sh"
+  . "${me_realdevice_control_dir}/shutdown_process.sh"
+  . "${me_realdevice_control_dir}/serial.sh"
+  . "${me_realdevice_control_dir}/adb.sh"
+}

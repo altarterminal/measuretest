@@ -4,7 +4,7 @@ set -u
 me_check_interface_implement() {
   local this_file
 
-  this_file=${BASH_SOURCE[0]}
+  this_file=$(realpath "${BASH_SOURCE[0]}")
 
   cat <<__EOF | sed 's!^ *!!' |
     me_setup_all

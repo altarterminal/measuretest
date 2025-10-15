@@ -1,6 +1,18 @@
 #!/bin/bash
 set -u
 
+me_import_sequence_control() {
+  local me_this_file
+  local me_this_dir
+
+  me_this_file=$(realpath "${BASH_SOURCE[0]}")
+  me_this_dir=$(dirname "${me_this_file}")
+
+  . "${me_this_dir}/control_unit_evaluation.sh"
+  . "${me_this_dir}/check_interface_implement.sh"
+  . "${me_this_dir}/get_peripheral_condition.sh"
+}
+
 me_stable_setup_all() {
   local ME_REPEAT_NUM=3
 
