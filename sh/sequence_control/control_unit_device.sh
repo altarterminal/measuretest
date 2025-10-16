@@ -82,6 +82,8 @@ ME_PERIPHERAL_NAME="${TMPDIR:-/tmp}/${0##*/}_${ME_THIS_DATE}_perif_XXXXXX"
 
 me_exit_proc=':'
 
+trap '${me_exit_proc}' EXIT
+
 #####################################################################
 # check parameter
 #####################################################################
@@ -217,7 +219,6 @@ if [ "${me_exit_code}" -ne 0 ]; then
 fi
 
 me_exit_proc="${me_exit_proc}; me_shutdown_process"
-trap "${me_exit_proc}" EXIT
 
 #####################################################################
 # prepare
@@ -246,7 +247,6 @@ fi
 ME_PERIPHERAL_FILE=$(mktemp "${ME_PERIPHERAL_NAME}")
 
 me_exit_proc="${me_exit_proc}; [ -e ${ME_PERIPHERAL_FILE} ] && rm ${ME_PERIPHERAL_FILE}"
-trap "${me_exit_proc}" EXIT
 
 me_get_peripheral_condition >"${ME_PERIPHERAL_FILE}"
 me_exit_code=$?
@@ -270,7 +270,6 @@ if [ "${me_exit_code}" -ne 0 ]; then
 fi
 
 me_exit_proc="${me_exit_proc}; me_cleanup_all"
-trap "${me_exit_proc}" EXIT
 
 #####################################################################
 # set cleanup process
@@ -279,10 +278,9 @@ trap "${me_exit_proc}" EXIT
 ME_TEMP_PARAM_FILE=$(mktemp "${ME_TEMP_PARAM_NAME}")
 
 me_exit_proc="${me_exit_proc}; [ -e ${ME_TEMP_PARAM_FILE} ] && rm ${ME_TEMP_PARAM_FILE}"
-trap "${me_exit_proc}" EXIT
 
 #####################################################################
-# determine bihavior for repeated error
+# determine behavior for repeated error
 #####################################################################
 
 if [ -z "${ME_BEHAVIOR_AFTER_REPEATED_ERROR:-}" ]; then
@@ -311,6 +309,10 @@ me_t_is_continue_eval="${ME_IS_CONTINUE_EVAL}"
 
 me_t_exit_code=''
 me_t_i=''
+
+me_t_exit_proc="${me_exit_proc}"
+
+trap '${me_t_exit_proc}' EXIT
 
 #####################################################################
 # cleanup definition

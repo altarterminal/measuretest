@@ -76,11 +76,11 @@ if ! jq . "${PARAM_FILE}" >/dev/null 2>&1; then
   exit 1
 fi
 
-PROJECT_NAME=$(jq -r '.PROJECT_NAME // empty'  "${PARAM_FILE}")
-PROJECT_VERSION=$(jq -r '.EVALUATION_SOFTWARE_VERSION // empty'  "${PARAM_FILE}")
-ABS_LOG_DIR=$(jq -r '.ABSOLUTE_LOG_PATH // empty'  "${PARAM_FILE}")
-ABS_IMAGE_DIR=$(jq -r '.ABSOLUTE_IMAGE_PATH // empty'  "${PARAM_FILE}")
-MEASURER_MAIL=$(jq -r '.MEASURER_MAIL // empty'  "${PARAM_FILE}")
+PROJECT_NAME=$(jq -r '.PROJECT_NAME // empty' "${PARAM_FILE}")
+PROJECT_VERSION=$(jq -r '.EVALUATION_SOFTWARE_VERSION // empty' "${PARAM_FILE}")
+ABS_LOG_DIR=$(jq -r '.ABSOLUTE_LOG_PATH // empty' "${PARAM_FILE}")
+ABS_IMAGE_DIR=$(jq -r '.ABSOLUTE_IMAGE_PATH // empty' "${PARAM_FILE}")
+MEASURER_MAIL=$(jq -r '.MEASURER_MAIL // empty' "${PARAM_FILE}")
 
 ABS_LOG_DIR=${ABS_LOG_DIR%/}
 ABS_IMAGE_DIR=${ABS_IMAGE_DIR%/}
@@ -163,7 +163,7 @@ if [ "${exit_code}" -ne 0 ]; then
 fi
 
 #####################################################################
-# output setting file
+# output main setting
 #####################################################################
 
 trap '[ -e "${ENABLER_FILE}" ] && rm "${ENABLER_FILE}"' EXIT
@@ -216,7 +216,7 @@ if ! printf '%s\n' "${realdevice_serial}" | grep -Eq '^[0-9a-f]{8}$'; then
 fi
 
 #####################################################################
-# clean
+# output rest setting
 #####################################################################
 
 trap EXIT

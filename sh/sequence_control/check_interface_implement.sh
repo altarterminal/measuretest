@@ -2,9 +2,9 @@
 set -u
 
 me_check_interface_implement() {
-  local this_file
+  local me_this_file
 
-  this_file=$(realpath "${BASH_SOURCE[0]}")
+  me_this_file=$(realpath "${BASH_SOURCE[0]}")
 
   cat <<__EOF | sed 's!^ *!!' |
     me_setup_all
@@ -17,7 +17,7 @@ me_check_interface_implement() {
 __EOF
     while read -r func_name; do
       if ! type "${func_name}" >/dev/null 2>&1; then
-        echo "ERROR:${this_file##*/}: NOT defined <${func_name}>" 1>&2
+        echo "ERROR:${me_this_file##*/}: NOT defined <${func_name}>" 1>&2
         echo 'e'
       fi
     done |
